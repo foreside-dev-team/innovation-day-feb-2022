@@ -6,3 +6,10 @@ services:
       ports:
       - "6379:6379"
 
+  postgres:
+      image: postgres:latest
+      restart: always
+      environment:
+        POSTGRES_PASSWORD: mypassword
+      ports:
+      - "5432:5432"
