@@ -14,7 +14,7 @@ public class MicroserviceApplication {
 		SpringApplication.run(MicroserviceApplication.class, args);
 	}
 	@GetMapping("/hello")
-	public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
+	public String hello(@RequestParam(value = "name", defaultValue = "Mateo") String name) {
 		return String.format("Welcome to Foreside innovationd day, %s!", name);
 	}
 
