@@ -1,2 +1,5 @@
 ts-microservice/build/
 ts-microservice/node_modules/
+api-gateway/build/
+api-gateway/node_modules/
+_datastorage/rabbitmq/data
