@@ -1,38 +1,29 @@
-import amqp from "amqplib";
+import amqp, { Message, MessageProperties } from "amqplib";
+import { EventEmitter } from "stream";
+import { v4 as uuidv4 } from "uuid";
 import { generateBuffer, parseBuffer } from "./helpers/buffer";
+import { clientErrorHandler } from "./helpers/clientErrorHandler";
+import { queueErrorHandler } from "./helpers/queueErrorHandler";
 
 type RabbitMqOptions = {
   url: string;
   prefetch?: number;
 };
 
-interface RabbitMqMessage {}
-
-interface RabbitMqMessageProperties {
-  contentType: string;
-  contentEncoding: string;
-  headers: any;
-  deliveryMode: number;
-  priority: 0;
-  correlationId: string;
-  replyTo: string;
-  expiration: number;
-  messageId: string;
-  timestamp: number;
-  type: string;
-  userId: string;
-  appId: string;
-}
-
 export class RabbitMQClient {
   options: RabbitMqOptions;
   connection: any;
   prefetch: number;
+  replyExtension = "amq.rabbitmq.reply-to";
+  responseEmitter: EventEmitter;
 
   constructor(options: RabbitMqOptions) {
     this.options = options;
-    this.connection = amqp.connect(this.options.url);
     this.prefetch = options.prefetch || 10;
+    this.responseEmitter = new EventEmitter();
+    this.responseEmitter.setMaxListeners(0);
+
+    this.connection = amqp.connect(this.options.url);
   }
 
   public async createChannel(): Promise<any> {
@@ -45,7 +36,101 @@ export class RabbitMQClient {
     this.connection.then((con: { close: () => any }) => con.close());
   }
 
-  public async serverRPCConsumer(queueName: string, handler: () => void) {
+  async clientRPCPublisher(
+    queueName: string,
+    payload: string | object,
+    options: Partial<MessageProperties>
+  ) {
+    // Create a channel
+    const channel = await this.createChannel();
+    // Register the Respnse Consumer
+    this.clientRPCResponseConsumer(queueName, channel);
+
+    // Define our opts
+    let opts = options || {};
+    // Set our Request Options
+    opts = {
+      contentType: options?.contentType || `application/json`,
+      contentEncoding: options?.contentEncoding
+        ? options.contentEncoding.toUpperCase()
+        : `UTF-8`,
+      headers: options?.headers || {},
+      deliveryMode: options?.deliveryMode || 1,
+      priority: options?.priority || 0,
+      correlationId: options?.correlationId || uuidv4(),
+      replyTo: this.replyExtension,
+      expiration: options?.expiration || undefined,
+      messageId: options?.messageId || uuidv4(),
+      timestamp: options?.timestamp || Math.floor(Date.now() / 1000),
+      type: options?.type || `default.type`,
+      userId: options?.userId || `guest`,
+      appId: options?.appId || `default`,
+      clusterId: options?.clusterId || `default`,
+    };
+
+    // Send the buffer to the queue, leave the channel open for the clientRPCResponseConsumer
+    channel.sendToQueue(queueName, generateBuffer(payload), opts);
+
+    // Return a Promise to resolve the response with a registered CorrelationId
+    return new Promise((resolve, reject) => {
+      // Try to emit the correlationId
+      try {
+        // Emit the coorelationId with the message
+        return this.responseEmitter.once(opts.correlationId, (msg, err) => {
+          if (err) {
+            reject(new Error(err));
+          }
+          // Parse the msg.content
+          const data = parseBuffer(msg.content);
+          // Check if we have erorrs
+          if (data.error) {
+            reject(clientErrorHandler(data));
+          }
+          resolve(data);
+        });
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  /**
+   * @name clientRPCResponseConsumer
+   * @description Create a channel to listen to a RPC Requests Response
+   * @param {string} queueName
+   */
+  async clientRPCResponseConsumer(queueName: string, channel: any) {
+    // Handle channel errors
+    channel.on("error", (err: { tostring: () => any }) => {
+      console.error(`Channel Error`, err.tostring());
+      // Close the Channel
+      channel.close();
+    });
+    // Listen to the Reply Queue
+    channel.consume(
+      this.replyExtension,
+      (msg: any) => {
+        // Reply received, emit that it has been received
+        this.responseEmitter.emit(msg.properties.correlationId, msg);
+        // Close the Channel
+        channel.close();
+      },
+      {
+        noAck: true,
+      }
+    );
+  }
+
+  /**
+   * @name serverRPCConsumer
+   * @description Method to receive messages from the queue and return the response on a response queue
+   * @param queueName
+   * @param handler
+   */
+  public async serverRPCConsumer(
+    queueName: string,
+    handler: (data: any, opts: amqp.MessageProperties) => void
+  ) {
     // Create a channel
     const channel = await this.createChannel();
     // Create the Queue
@@ -56,9 +141,9 @@ export class RabbitMQClient {
     channel.prefetch(this.prefetch);
 
     // Consume the Queue
-    channel.consume(queueName, async (msg: RabbitMqMessageProperties) => {
+    channel.consume(queueName, async (msg: Message) => {
       // Check if we received a message
-      if (msg === null) {
+      if (msg.content === null) {
         // Create the Error payload
         const payload = {
           error: true,

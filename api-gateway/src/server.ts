@@ -1,5 +1,6 @@
 import express, { Application, Request, Response } from "express";
 import router from "./routes";
+import "./handlers/test-server";
 
 const app: Application = express();
 const port = 3000;
