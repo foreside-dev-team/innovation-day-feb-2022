@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package messages;
+
+import "google/protobuf/empty.proto";
+
+message Message {
+    int32 id = 1;
+    string title = 2;
+    string body = 3;
+}
+
+message MessageRequest {
+    int32 id = 1;
+}
+
+service Messages {
+    rpc GetMessage(MessageRequest) returns (Messaage) {};
+    rpc CreateMessage(stream Message) returns (google.protobuf.Empty) {};
+    rpc GetMessages(google.protobuf.Empty) returns (stream Message) {};
+}
