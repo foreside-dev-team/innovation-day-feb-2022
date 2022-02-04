@@ -8,7 +8,9 @@
     "test": "jest",
     "clean": "rimraf ./build",
     "build": "npm run clean && tsc",
-    "start:prod": "npm run build && node build/index.js"
+    "start:prod": "npm run build && node build/index.js",
+    "generate:server": "npx grpc_tools_node_protoc --js_out=import_style=commonjs,binary:./proto --grpc_out=./proto -I ./proto proto/*.proto",
+    "generate:server:ts": "npx grpc_tools_node_protoc --ts_out=import_style=commonjs,binary:./proto --grpc_out=./proto -I ./proto proto/*.proto"
   },
   "keywords": [],
   "author": "",

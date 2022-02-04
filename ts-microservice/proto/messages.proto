@@ -15,7 +15,7 @@ message MessageRequest {
 }
 
 service Messages {
-    rpc GetMessage(MessageRequest) returns (Messaage) {};
+    rpc GetMessage(MessageRequest) returns (Message) {};
     rpc CreateMessage(stream Message) returns (google.protobuf.Empty) {};
     rpc GetMessages(google.protobuf.Empty) returns (stream Message) {};
 }
