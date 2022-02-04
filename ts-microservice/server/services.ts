@@ -3,7 +3,7 @@ import { handleUnaryCall, handleClientStreamingCall, handleServerStreamingCall, 
 import { IMessagesServer } from "../proto/messages_grpc_pb";
 import { MessageRequest, Message } from "../proto/messages_pb";
 
-const messages = require('./db');
+import { messages } from "./db";
 
 export class MessageServer implements IMessagesServer {
     getMessage(call: ServerUnaryCall<MessageRequest>, callback: sendUnaryData<Message>) {
