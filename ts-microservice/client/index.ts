@@ -7,6 +7,7 @@ async function run() {
     const message = await getMessage(1);
     console.log(message.toString());
 
+    //Create a message and send it using gRPC.
     const mes1 = new Message();
     mes1.setId(20);
     mes1.setTitle("Topic1");
@@ -14,6 +15,7 @@ async function run() {
     createMessages([mes1]);
     console.log(`\nCreated message ${mes1.toString()}`);
 
+    //Wait to receive all messages from gRPC server.
     const messages = await allMessages();
     console.log(`\nListing all ${messages.length} messages`);
     for (const message of messages) {

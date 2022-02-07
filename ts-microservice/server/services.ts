@@ -5,6 +5,8 @@ import { MessageRequest, Message } from "../proto/messages_pb";
 
 import { messages } from "./db";
 
+/* Implements server side gRPC based on messages.proto. Manual code. */
+
 export class MessageServer implements IMessagesServer {
     getMessage(call: ServerUnaryCall<MessageRequest>, callback: sendUnaryData<Message>) {
         const messageId = call.request.getId();
