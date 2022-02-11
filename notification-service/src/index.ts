@@ -48,10 +48,8 @@ const createOrderHandler = async (order:  Order) => {
         };
     }
 
-    const product: Product | 'Product has not been found' = await rabbitMqClient.clientRPCPublisher('products', { tostiId: Number(order.toasty_id) }, {}) as Product | 'Product has not been found';
-    console.log('product', product);
+    const product: Product | 'Product has not been found' = await rabbitMqClient.clientRPCPublisher('products', { tostiId: order.tosti_id }, {}) as Product | 'Product has not been found';
 
-    console.log('order.customeremail', order.customer_email)
     if (product === 'Product has not been found') {
         return sendMsg({
             to: order.customer_email,
@@ -76,10 +74,25 @@ const createOrderHandler = async (order:  Order) => {
             </br>
             <p>The toasty has:</p>
             <ul>
-                ${product.ingredients.map(ingredient => `<li>${ingredient}</li>`)}
+                ${product.ingredients.map(ingredient => `<li>${ingredient.name}</li>`)}
             </ul>
         `,
-    })
+    });
+
+    sendMsg({
+        to: order.customer_email, // Change to your recipient
+        from: 'steven.van.den.hout@foreside.nl', // Change to your verified sender
+        replyTo: 'tosti@foreside.nl',
+        subject: `Make toastie {${order.order_id}}`,
+        html: `
+            <strong>You have ordered ${product.name} from toasti master! it will come ASAP</strong>
+            </br>
+            <p>The toasty has:</p>
+            <ul>
+                ${product.ingredients.map(ingredient => `<li>${ingredient.name}</li>`)}
+            </ul>
+        `,
+    });
 };
 
 rabbitMqClient.pubSubConsumer('orderCreated', createOrderHandler);

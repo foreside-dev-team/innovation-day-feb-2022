@@ -1,6 +1,6 @@
 export interface Order {
     order_id: number,
-    toasty_id: number,
+    tosti_id: number,
     customer_email: string,
 }
 
