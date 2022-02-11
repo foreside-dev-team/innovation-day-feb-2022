@@ -7,7 +7,7 @@ import { MessageProperties } from "amqplib";
 const ordersRouter = Router();
 const queue = "orders";
 
-ordersRouter.post("/create", async (req: Request, res: Response) => {
+ordersRouter.post("/", async (req: Request, res: Response) => {
   const client = new RabbitMQClient({
     url: `amqp://${config.rabbitmq.host}:5672`,
   });
@@ -17,11 +17,12 @@ ordersRouter.post("/create", async (req: Request, res: Response) => {
   };
 
   const order = { ...req.body };
+  order.tosti_id = Number(order.tosti_id);
 
   try {
     const data = await client.clientRPCPublisher(queue, order, opts);
 
-    res.send(data);
+    res.status(201).send(data);
   } catch (err) {
     console.error(err);
     return err;
