@@ -6,7 +6,7 @@ const client = new RabbitMQClient({
     url: `amqp://${config.rabbitmq.host}:5672`,
 });
 
-const port = 3000; // port to listen
+const port = 9999; // port to listen
 // Create a new express app instance
 const app: express.Application = express();
 const actuator = require('express-actuator')
