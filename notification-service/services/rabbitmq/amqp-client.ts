@@ -54,9 +54,8 @@ export class RabbitMQClient {
     console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", exchange);
     channel.bindQueue(exchange, exchange, exchange);
 
-    channel.consume(exchange, function(msg: Message) {
-      console.log('msg', msg);
-      return handler(<T>parseBuffer(msg.content));
+    channel.consume(exchange, async function(msg: Message) {
+      return handler(parseBuffer(msg.content));
     }, {
       noAck: true
     });

@@ -1,7 +1,7 @@
 export interface Order {
-    orderid: number,
-    toastyid: number,
-    customeremail: string,
+    order_id: number,
+    toasty_id: number,
+    customer_email: string,
 }
 
 export interface Product {

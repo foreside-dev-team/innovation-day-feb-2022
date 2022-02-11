@@ -26,26 +26,35 @@ const sendMsg = (msg: sendgridMail.MailDataRequired) => {
 }
 
 const createOrderHandler = async (order:  Order) => {
+    if (order == null) {
+        return new Error('order is null')
+    }
+
+    console.log('order', order);
+
+    
     // Check if we have a message
     if (order === null) {
-      return {
+        return {
         error: true,
         statusCode: 500,
         message: "Queue message is empty",
         details: [
-          {
+            {
             code: 100,
             message: "Queue message is empty",
-          },
+            },
         ],
-      };
+        };
     }
 
-    const product: Product | 'Product has not been found' = await rabbitMqClient.clientRPCPublisher('products', { tostiId: order.toastyid }, {}) as Product | 'Product has not been found';
+    const product: Product | 'Product has not been found' = await rabbitMqClient.clientRPCPublisher('products', { tostiId: Number(order.toasty_id) }, {}) as Product | 'Product has not been found';
+    console.log('product', product);
 
+    console.log('order.customeremail', order.customer_email)
     if (product === 'Product has not been found') {
         return sendMsg({
-            to: order.customeremail,
+            to: order.customer_email,
             from: 'steven.van.den.hout@foreside.nl', // Change to your verified sender
             replyTo: 'tosti@foreside.nl',
             subject: `What did you just order?!?!?`,
@@ -60,10 +69,10 @@ const createOrderHandler = async (order:  Order) => {
     sendMsg({
         to: 'tosti@foreside.nl', // Change to your recipient
         from: 'steven.van.den.hout@foreside.nl', // Change to your verified sender
-        replyTo: order.customeremail,
-        subject: `Make toastie {${order.orderid}}`,
+        replyTo: order.customer_email,
+        subject: `Make toastie {${order.order_id}}`,
         html: `
-            <strong>Make me a ${product.name} tosti please toasti master! ${order.customeremail} needs it ASAP</strong>
+            <strong>Make me a ${product.name} tosti please toasti master! ${order.customer_email} needs it ASAP</strong>
             </br>
             <p>The toasty has:</p>
             <ul>
