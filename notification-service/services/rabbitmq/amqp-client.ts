@@ -1,7 +1,6 @@
 import amqp, { Message, MessageProperties } from "amqplib";
 import { EventEmitter } from "stream";
 import { v4 as uuidv4 } from "uuid";
-import { Order } from "../../src/interfaces/interfaces";
 import { generateBuffer, parseBuffer } from "./helpers/buffer";
 import { clientErrorHandler } from "./helpers/clientErrorHandler";
 import { queueErrorHandler } from "./helpers/queueErrorHandler";
@@ -50,18 +49,16 @@ export class RabbitMQClient {
 
     channel.assertQueue('', {
       exclusive: true
-    }, function(error: any, q: any) {
-      if (error) {
-        throw error;
-      }
-      console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", q.queue);
-      channel.bindQueue(q.queue, exchange, '');
+    });
+     
+    console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", exchange);
+    channel.bindQueue(exchange, exchange, exchange);
 
-      channel.consume(q.queue, function(msg: T) {
-        return handler(msg);
-      }, {
-        noAck: true
-      });
+    channel.consume(exchange, function(msg: Message) {
+      console.log('msg', msg);
+      return handler(<T>parseBuffer(msg.content));
+    }, {
+      noAck: true
     });
   }
 
