@@ -65,7 +65,7 @@ const createOrderHandler = async (order:  Order) => {
     }
     
     sendMsg({
-        to: 'tosti@foreside.nl', // Change to your recipient
+        to: 'robert.lenders@foreside.nl', // Change to your recipient
         from: 'steven.van.den.hout@foreside.nl', // Change to your verified sender
         replyTo: order.customer_email,
         subject: `Make toastie {${order.order_id}}`,
@@ -82,7 +82,7 @@ const createOrderHandler = async (order:  Order) => {
     sendMsg({
         to: order.customer_email, // Change to your recipient
         from: 'steven.van.den.hout@foreside.nl', // Change to your verified sender
-        replyTo: 'tosti@foreside.nl',
+        replyTo: 'robert.lenders@foreside.nl',
         subject: `Make toastie {${order.order_id}}`,
         html: `
             <strong>You have ordered ${product.name} from toasti master! it will come ASAP</strong>
