@@ -10,6 +10,21 @@ const rabbitMqClient = new RabbitMQClient({
     url: `amqp://${config.rabbitmq.host}:5672`,
 });
 
+const sendMsg = (msg: sendgridMail.MailDataRequired) => {
+    try {        
+        return sendgridMail
+            .send(msg)
+            .then(() => {
+                console.log('Email sent')
+            })
+            .catch((error) => {
+                console.error(error)
+            })
+    } catch (err) {
+      throw err;
+    }
+}
+
 const createOrderHandler = async (order:  Order) => {
     // Check if we have a message
     if (order === null) {
@@ -26,9 +41,23 @@ const createOrderHandler = async (order:  Order) => {
       };
     }
 
-    const product: Product = await rabbitMqClient.clientRPCPublisher('products', { tostiId: order.toastyid }, {}) as Product;
+    const product: Product | 'Product has not been found' = await rabbitMqClient.clientRPCPublisher('products', { tostiId: order.toastyid }, {}) as Product | 'Product has not been found';
+
+    if (product === 'Product has not been found') {
+        return sendMsg({
+            to: order.customeremail,
+            from: 'steven.van.den.hout@foreside.nl', // Change to your verified sender
+            replyTo: 'tosti@foreside.nl',
+            subject: `What did you just order?!?!?`,
+            html: `
+                <strong>You chose poorly!</strong>
+                </br>
+                <p>This tosti does not exist</p>
+            `,
+        });
+    }
     
-    const msg: sendgridMail.MailDataRequired = {
+    sendMsg({
         to: 'tosti@foreside.nl', // Change to your recipient
         from: 'steven.van.den.hout@foreside.nl', // Change to your verified sender
         replyTo: order.customeremail,
@@ -41,24 +70,10 @@ const createOrderHandler = async (order:  Order) => {
                 ${product.ingredients.map(ingredient => `<li>${ingredient}</li>`)}
             </ul>
         `,
-    }
- 
-    try {        
-        sendgridMail
-            .send(msg)
-            .then(() => {
-                console.log('Email sent')
-            })
-            .catch((error) => {
-                console.error(error)
-            })
-        return order;
-    } catch (err) {
-      throw err;
-    }
+    })
 };
 
-rabbitMqClient.clientRPCsubscriber('orderCreated', createOrderHandler);
+rabbitMqClient.pubSubConsumer('orderCreated', createOrderHandler);
 
 /**
  * Express server

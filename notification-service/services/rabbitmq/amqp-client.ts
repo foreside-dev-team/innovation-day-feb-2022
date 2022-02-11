@@ -37,7 +37,7 @@ export class RabbitMQClient {
     this.connection.then((con: { close: () => any }) => con.close());
   }
 
-  async clientRPCsubscriber<T>(
+  async pubSubConsumer<T>(
     exchange: string,
     handler: (msg: T) => void
   ) {
