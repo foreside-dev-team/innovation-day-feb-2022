@@ -46,6 +46,8 @@ export class RabbitMQClient {
     // Register the Respnse Consumer
     this.clientRPCResponseConsumer(queueName, channel);
 
+    console.log("options: ", options);
+
     // Define our opts
     let opts = options || {};
     // Set our Request Options
@@ -101,8 +103,8 @@ export class RabbitMQClient {
    */
   async clientRPCResponseConsumer(queueName: string, channel: any) {
     // Handle channel errors
-    channel.on("error", (err: { tostring: () => any }) => {
-      console.error(`Channel Error`, err.tostring());
+    channel.on("error", (err: { toString: () => any }) => {
+      console.error(`Channel Error`, err.toString());
       // Close the Channel
       channel.close();
     });

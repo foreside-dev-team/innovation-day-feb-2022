@@ -1,8 +1,11 @@
 import { Message } from "amqplib";
 import { RabbitMQClient } from "../../services/rabbitmq/amqp-client";
+import { config } from "../../config";
 
 const queue = "test-queue";
-const client = new RabbitMQClient({ url: "amqp://localhost:5672" });
+const client = new RabbitMQClient({
+  url: `amqp://${config.rabbitmq.host}:5672`,
+});
 const handler = async (content: Message["content"]) => {
   // Check if we have a message
   if (content === null) {

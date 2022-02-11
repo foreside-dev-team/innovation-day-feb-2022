@@ -1,4 +1,5 @@
 export const queueErrorHandler = (error: any) => {
+  console.log("queueErrorHandler: ", error);
   error = error.toString();
   const errorObject = {
     name: "Queue Error",

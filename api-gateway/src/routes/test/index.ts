@@ -1,14 +1,18 @@
 import { Router, Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { RabbitMQClient } from "../../services/rabbitmq/amqp-client";
+import { config } from "../../config";
+import { MessageProperties } from "amqplib";
 
 const testRouter = Router();
 const queue = "test-queue";
 
 testRouter.get("/", async (request: Request, response: Response) => {
-  const client = new RabbitMQClient({ url: "amqp://localhost:5672" });
-  const opts = {
-    appId: "API Gateway",
+  const client = new RabbitMQClient({
+    url: `amqp://${config.rabbitmq.host}:5672`,
+  });
+  const opts: Partial<MessageProperties> = {
+    appId: "apigateway",
     correlationId: uuidv4(),
   };
 
