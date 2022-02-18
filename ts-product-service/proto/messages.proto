@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package messages;
+
+import "google/protobuf/empty.proto";
+
+/* Message Schema.
+You need to regenerate the client and server
+after changing this file. Check package.json */
+
+message Message {
+    int32 id = 1;
+    string title = 2;
+    string body = 3;
+}
+
+message MessageRequest {
+    int32 id = 1;
+}
+
+service Messages {
+    rpc GetMessage(MessageRequest) returns (Message) {};
+    rpc CreateMessage(stream Message) returns (google.protobuf.Empty) {};
+    rpc GetMessages(google.protobuf.Empty) returns (stream Message) {};
+}
