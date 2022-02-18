@@ -2,6 +2,8 @@ ts-microservice/build/
 ts-microservice/node_modules/
 ts-product-service/build/
 ts-product-service/node_modules/
+notification-service/build/
+notification-service/node_modules/
 api-gateway/build/
 api-gateway/node_modules/
 _datastorage/rabbitmq/data

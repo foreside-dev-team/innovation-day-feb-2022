@@ -2,7 +2,7 @@ import { Message } from "amqplib";
 import { RabbitMQClient } from "../../services/rabbitmq/amqp-client";
 import { config } from "../../config";
 
-const queue = "test-queue";
+const queue = "orders";
 const client = new RabbitMQClient({
   url: `amqp://${config.rabbitmq.host}:5672`,
 });
